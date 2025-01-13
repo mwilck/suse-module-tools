@@ -389,6 +389,14 @@ needs_initrd() {
 
     if ! [ -f /etc/fstab -a ! -e /.buildenv -a -x "$DRACUT" ] ; then
 	echo "Please run \"$DRACUT -f /boot/initrd-$krel $krel\" as soon as your system is complete." >&2
+	for __x in /.buildenv /etc/fstab "$DRACUT" /image/config.xml /.kconfig /.profile /.build-release; do
+	    if [ -e "$__x" ]; then
+		echo "wm2: $__x exists: $(ls -l "$__x")" >&2
+	    else
+		echo "wm2: $__x DOES NOT exist." >&2
+	    fi
+	done
+
 	return 1
     fi
     # KMPs can force initrd rebuild with %kernel_module_package -b that sets

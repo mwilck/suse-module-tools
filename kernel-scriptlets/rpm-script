@@ -81,6 +81,13 @@ run_wm2() {
 message_install_bl () {
     echo "You may need to setup and install the boot loader using the"
     echo "available bootloader for your platform (e.g. grub, lilo, zipl, ...)."
+    for __x in /.buildenv /etc/fstab /usr/bin/dracut /image/config.xml; do
+	if [ -e "$__x" ]; then
+	    echo "$__x exists: $(ls -l "$__x")" >&2
+	else
+	    echo "$__x DOES NOT exist." >&2
+	fi
+    done
 }
 
 update_bootloader() {
@@ -118,6 +125,13 @@ update_bootloader() {
 # In build environments like kiwi, we need to create the symlinks.
 # kiwi will create the missing initrd a later stage in the boot process.
 is_build_environment() {
+    for __x in /.buildenv /image/config.xml /.kconfig /.profile /.build-release; do
+	if [ -e "$__x" ]; then
+	    echo "$op: $__x exists: $(ls -l "$__x")" >&2
+	else
+	    echo "$op: $__x DOES NOT exist." >&2
+	fi
+    done
     [ -e /.buildenv ] || [ -e /image/config.xml ]
 }
 
@@ -127,7 +141,10 @@ create_boot_symlinks() {
 
     [ -n "$is_sdbootutil" ] && return
     for x in /boot/"$image" /boot/initrd; do
-	[ -f "$x-$rel_flav" ] || broken=yes
+	[ -f "$x-$rel_flav" ] || {
+	    echo "ERROR: $x-$rel_flav is missing" >&2
+	    broken=yes
+	}
     done
     if [ "$broken" ] && ! is_build_environment; then
 	echo "ERROR: cannot create symlinks /boot/$image and /boot/initrd" >&2
